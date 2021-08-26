@@ -1,0 +1,101 @@
+// Variables
+@import "variables";
+
+// Bootstrap
+@import "bootstrap";
+
+// Tippy
+@import "tippy.js/dist/tippy";
+@import "tippy.js/themes/light";
+@import "tippy.js/animations/shift-away";
+
+@each $color, $value in $theme-colors {
+  .btn-outline-#{$color} {
+    background: white;
+
+    &:hover {
+      background: lighten($value, 40%);
+      color: $value;
+    }
+  }
+
+  .bg-#{$color}-light {
+    background: lighten($value, 5%);
+  }
+}
+
+.tippy-box {
+  @extend .shadow-sm;
+  @extend .border;
+  @extend .rounded;
+
+  &[data-theme~="light"] {
+    & > .tippy-content {
+      @extend .text-dark;
+    }
+  }
+
+  & > .tippy-content {
+    @extend .p-0;
+  }
+}
+
+* {
+  -webkit-font-smoothing: subpixel-antialiased !important;
+}
+
+.object-fit-contain {
+  object-fit: contain;
+}
+
+.form-check-input {
+  margin-top: 0.15em !important; 
+}
+
+.popup-menu {
+  @extend .list-group;
+  @extend .list-group-flush;
+  @extend .rounded;
+  @extend .py-2;
+
+  & > .popup-menu-item {
+    @extend .px-2;
+
+    & > div {
+      @extend .list-group-item;
+      @extend .list-group-item-action;
+      @extend .rounded;
+      @extend .border-0;
+    }
+  }
+}
+
+.sidebar {
+  @extend .row;
+  @extend .h-100;
+  @extend .gx-0;
+
+  & > div:first-of-type {
+    min-width: 230px;
+    max-width: 240px;
+  }
+}
+
+.btn-sidebar {
+  @extend .text-light;
+  @extend .text-start;
+  @extend .py-2;
+  @extend .px-3;
+
+  background: transparent;
+  border-right: 6px solid transparent;
+
+  &[data-selected="true"] {
+    border-color: lighten($primary, 30%);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}

@@ -1,0 +1,50 @@
+// Fonts
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css");
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');
+
+// Typography
+$font-family-sans-serif: "Nunito", sans-serif;
+
+// Colors
+$blue: #375d79;
+$indigo: #6574cd;
+$purple: #79589f;
+$pink: #e43555;
+$red: #e3342f;
+$orange: #f6993f;
+$yellow: #ffed4a;
+$green: #269956;
+$teal: #4dc0b5;
+$cyan: #6cb2eb;
+$dark: #303030;
+
+$primary: $blue;
+$secondary: lighten($blue, 10%);
+$light: #fcfcfc;
+
+$body-bg: white;
+$body-color: $dark;
+$text-muted: lighten($body-color, 5%);
+
+$min-contrast-ratio: 3;
+
+$border-radius: .15rem;
+
+$link-decoration: none;
+
+$card-spacer-x: 0.75rem;
+$card-spacer-y: 0.75rem;
+
+$btn-font-weight: bold;
+
+$input-padding-x-sm: .50rem;
+$input-padding-x: $input-padding-x-sm + .25rem;
+$input-padding-x-lg: $input-padding-x + .75rem;
+$input-btn-padding-x-sm: .75rem;
+$input-btn-padding-x: $input-btn-padding-x-sm + .50rem;
+$input-btn-padding-x-lg: $input-btn-padding-x + .50rem;
+$input-placeholder-color: lighten($body-color, 10%);
+$input-focus-box-shadow: none;
+$input-disabled-bg: #f5f5f5;
+
+$form-select-focus-width: 0;

@@ -111,7 +111,7 @@ export async function getCurrentUser(abort?: AbortSignal) {
 }
 
 export async function getProduct(id: string, abort?: AbortSignal) {
-  const res = await fetch(`/api/user/products/${id}`, {
+  const res = await fetch(`/api/products/${id}`, {
     method: "GET",
     signal: abort,
   });
@@ -124,7 +124,7 @@ export async function getProduct(id: string, abort?: AbortSignal) {
 }
 
 export async function getProducts(abort?: AbortSignal) {
-  const res = await fetch(`/api/user/products`, {
+  const res = await fetch(`/api/products`, {
     method: "GET",
     signal: abort,
   });
@@ -137,7 +137,7 @@ export async function getProducts(abort?: AbortSignal) {
 }
 
 export async function createProduct(data: CreateProduct, abort?: AbortSignal) {
-  const res = await fetch(`/api/user/products`, {
+  const res = await fetch(`/api/products`, {
     method: "POST",
     body: JSON.stringify(data),
     headers: {
@@ -154,7 +154,7 @@ export async function createProduct(data: CreateProduct, abort?: AbortSignal) {
 }
 
 export async function patchProduct(id: string, data: CreateProduct, abort?: AbortSignal) {
-  const res = await fetch(`/api/user/products/${id}`, {
+  const res = await fetch(`/api/products/${id}`, {
     method: "PATCH",
     body: JSON.stringify(data),
     headers: {
@@ -171,7 +171,7 @@ export async function patchProduct(id: string, data: CreateProduct, abort?: Abor
 }
 
 export async function getOrder(id: string, abort?: AbortSignal) {
-  const res = await fetch(`/api/user/orders/${id}`, {
+  const res = await fetch(`/api/orders/${id}`, {
     method: "GET",
     signal: abort,
   });
@@ -184,7 +184,7 @@ export async function getOrder(id: string, abort?: AbortSignal) {
 }
 
 export async function getOrders(abort?: AbortSignal) {
-  const res = await fetch(`/api/user/orders`, {
+  const res = await fetch(`/api/orders`, {
     method: "GET",
     signal: abort,
   });
@@ -197,7 +197,7 @@ export async function getOrders(abort?: AbortSignal) {
 }
 
 export async function createOrder(data: CreateOrder, abort?: AbortSignal) {
-  const res = await fetch(`/api/user/orders`, {
+  const res = await fetch(`/api/orders`, {
     method: "POST",
     body: JSON.stringify(data),
     headers: {

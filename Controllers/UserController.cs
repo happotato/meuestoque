@@ -150,8 +150,6 @@ namespace MeuEstoque.Controllers
         {
             var user = DB.Users
                 .Where(user => user.Email == data.Email && user.Password == data.Password)
-                .ToList()
-                .DefaultIfEmpty(null)
                 .SingleOrDefault();
 
             if (user == null)
@@ -191,8 +189,6 @@ namespace MeuEstoque.Controllers
         {
             var user = DB.Users
                 .Where(user => user.Id == User.FindFirstValue(ClaimTypes.Sid))
-                .ToList()
-                .DefaultIfEmpty(null)
                 .SingleOrDefault();
 
             if (user == null)
@@ -211,8 +207,6 @@ namespace MeuEstoque.Controllers
             var product = DB.Products
                 .Where(product => product.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
                 .Where(product => product.Id == id)
-                .ToList()
-                .DefaultIfEmpty(null)
                 .SingleOrDefault();
 
             if (product == null)
@@ -227,8 +221,6 @@ namespace MeuEstoque.Controllers
         {
             var user = DB.Users
                 .Where(user => user.Id == User.FindFirstValue(ClaimTypes.Sid))
-                .ToList()
-                .DefaultIfEmpty(null)
                 .SingleOrDefault();
 
             if (user == null)
@@ -267,8 +259,6 @@ namespace MeuEstoque.Controllers
             var product = DB.Products
                 .Where(product => product.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
                 .Where(product => product.Id == id)
-                .ToList()
-                .DefaultIfEmpty(null)
                 .SingleOrDefault();
 
             if (product == null)
@@ -291,8 +281,6 @@ namespace MeuEstoque.Controllers
         {
             var user = DB.Users
                 .Where(user => user.Id == User.FindFirstValue(ClaimTypes.Sid))
-                .ToList()
-                .DefaultIfEmpty(null)
                 .SingleOrDefault();
 
             if (user == null)
@@ -313,8 +301,6 @@ namespace MeuEstoque.Controllers
                 .Include(order => order.Product)
                 .Where(order => order.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
                 .Where(order => order.Id == id)
-                .ToList()
-                .DefaultIfEmpty(null)
                 .SingleOrDefault();
 
             if (order == null)
@@ -330,8 +316,6 @@ namespace MeuEstoque.Controllers
              var product = DB.Products
                 .Where(product => product.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
                 .Where(product => product.Id == data.ProductId)
-                .ToList()
-                .DefaultIfEmpty(null)
                 .SingleOrDefault();
 
             if (product == null)

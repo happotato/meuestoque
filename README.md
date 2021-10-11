@@ -26,13 +26,19 @@ dotnet build
 #### With SQLServer
 
 ```bash
-dotnet run DB:SQLServer:ConnectionString="<string>"
+dotnet run --project MeuEstoque.Web DB:SQLServer:ConnectionString="<string>"
 ```
 
 #### With SQLite
 
 ```bash
-dotnet run DB:SQLite:ConnectionString="<string>"
+dotnet run --project MeuEstoque.Web DB:SQLite:ConnectionString="<string>"
+```
+
+#### With InMemory Database
+
+```bash
+dotnet run --project MeuEstoque.Web
 ```
 
 ## License

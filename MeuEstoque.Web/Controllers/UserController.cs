@@ -11,11 +11,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using MeuEstoque.Data;
-using MeuEstoque.Models;
-using Microsoft.EntityFrameworkCore;
+using MeuEstoque.Domain.AggregatesModel.UserAggregate;
 
-namespace MeuEstoque.Controllers
+namespace MeuEstoque.Web.Controllers
 {
     public struct UserCreationData
     {
@@ -49,15 +47,15 @@ namespace MeuEstoque.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private ApplicationDatabase DB { get; }
+        private IUserRepository UserRepository { get; }
 
         private IUserStore<User> UserStore { get; }
 
         private ILogger Logger { get; }
 
-        public UserController(ILogger<UserController> logger, ApplicationDatabase db, IUserStore<User> userStore)
+        public UserController(ILogger<UserController> logger, IUserRepository repository, IUserStore<User> userStore)
         {
-            DB = db;
+            UserRepository = repository;
             UserStore = userStore;
             Logger = logger;
         }
@@ -74,15 +72,9 @@ namespace MeuEstoque.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<User>> CreateUser(UserCreationData data)
         {
-            var user = new User
-            {
-                Name = data.Name,
-                Username = data.Username,
-                Email = data.Email,
-                Password = data.Password,
-            };
+            var user = new User(data.Name, data.Username, data.Email, data.Password);
 
-            var duplicated = DB.Users
+            var duplicated = UserRepository.All
                 .Where(user => user.Email == data.Email || user.Username == data.Username)
                 .Count();
 
@@ -103,7 +95,7 @@ namespace MeuEstoque.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<User>> Login(UserLoginData data)
         {
-            var user = DB.Users
+            var user = UserRepository.All
                 .Where(user => user.Email == data.Email && user.Password == data.Password)
                 .SingleOrDefault();
 

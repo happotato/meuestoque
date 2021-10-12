@@ -1,21 +1,15 @@
-using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using MeuEstoque.Data;
-using MeuEstoque.Models;
-using Microsoft.EntityFrameworkCore;
+using MeuEstoque.Domain.AggregatesModel.UserAggregate;
+using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
+using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
 
-namespace MeuEstoque.Controllers
+namespace MeuEstoque.Web.Controllers
 {
     public struct ProductCreationData
     {
@@ -52,13 +46,22 @@ namespace MeuEstoque.Controllers
     [Route("api/products")]
     public class ProductController : ControllerBase
     {
-        private ApplicationDatabase DB { get; }
+        private IUserRepository UserRepository { get; }
+
+        private IProductRepository ProductRepository { get; }
+
+        private IOrderRepository OrderRepository { get; }
 
         private ILogger Logger { get; }
 
-        public ProductController(ILogger<UserController> logger, ApplicationDatabase db)
+        public ProductController(ILogger<UserController> logger,
+                               IUserRepository userRepository,
+                               IProductRepository productRepository,
+                               IOrderRepository orderRepository)
         {
-            DB = db;
+            UserRepository = userRepository;
+            ProductRepository = productRepository;
+            OrderRepository = orderRepository;
             Logger = logger;
         }
 
@@ -66,14 +69,12 @@ namespace MeuEstoque.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Product>> GetProducts()
         {
-            var user = DB.Users
-                .Where(user => user.Id == User.FindFirstValue(ClaimTypes.Sid))
-                .SingleOrDefault();
+            var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
 
             if (user == null)
                 return NotFound("User not found");
 
-            var products = DB.Products
+            var products = ProductRepository.All
                 .Where(product => product.OwnerId == user.Id);
 
             return Ok(products);
@@ -83,7 +84,7 @@ namespace MeuEstoque.Controllers
         [HttpGet("{id}")]
         public ActionResult<Product> GetProductById(string id)
         {
-            var product = DB.Products
+            var product = ProductRepository.All
                 .Where(product => product.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
                 .Where(product => product.Id == id)
                 .SingleOrDefault();
@@ -98,37 +99,45 @@ namespace MeuEstoque.Controllers
         [HttpPost]
         public ActionResult<Product> CreateProduct(ProductCreationData data)
         {
-            var user = DB.Users
-                .Where(user => user.Id == User.FindFirstValue(ClaimTypes.Sid))
-                .SingleOrDefault();
+            var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
 
             if (user == null)
                 return NotFound("User not found");
 
-            var newProduct = new Product
-            {
-                Name = data.Name,
-                Description = data.Description,
-                ImageUrl = data.ImageUrl,
-                Quantity = data.Quantity,
-                Price = data.Price,
-                Owner = user,
-                OwnerId = user.Id,
-            };
+            var newProduct = new Product(user.Id, data.Name, data.Description,
+                data.ImageUrl, data.Price, data.Quantity);
 
-            var newOrder = new Order
-            {
-                Price = newProduct.Price,
-                Quantity = data.Quantity,
-                ProductId = newProduct.Id,
-                OwnerId = newProduct.OwnerId,
-            };
+            var newOrder = new Order(newProduct.OwnerId, newProduct.Id, newProduct.Price, data.Quantity);
 
-            DB.Products.Add(newProduct);
-            DB.Orders.Add(newOrder);
-            DB.SaveChanges();
+            ProductRepository.Add(newProduct);
+            OrderRepository.Add(newOrder);
+
+            ProductRepository.Save();
+            OrderRepository.Save();
 
             return GetProductById(newProduct.Id);
+        }
+
+        [Authorize]
+        [HttpPatch("{id}")]
+        public ActionResult<Product> PatchProduct(string id, ProductPatchData data)
+        {
+            var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
+
+            if (user == null)
+                return NotFound("User not found");
+
+            var product = ProductRepository.GetById(id);
+
+            product.Name = data.Name;
+            product.ImageUrl = data.ImageUrl;
+            product.Price = data.Price;
+            product.Description = data.Description;
+
+            ProductRepository.Update(product);
+            ProductRepository.Save();
+
+            return product;
         }
     }
 }

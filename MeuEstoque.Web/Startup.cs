@@ -8,10 +8,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MeuEstoque.Data;
-using MeuEstoque.Models;
+using MeuEstoque.Infrastructure;
+using MeuEstoque.Infrastructure.Cryptography;
+using MeuEstoque.Infrastructure.Repositories;
+using MeuEstoque.Domain.AggregatesModel.UserAggregate;
+using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
+using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
 
-namespace MeuEstoque
+namespace MeuEstoque.Web
 {
     public class Startup
     {
@@ -30,7 +34,7 @@ namespace MeuEstoque
                 Convert.FromBase64String(Configuration["Crypto:IV"])
             ));
 
-            services.AddDbContext<ApplicationDatabase>(opt => {
+            services.AddDbContext<ApplicationContext>(opt => {
                 if (Configuration["DB:SQLServer:ConnectionString"] is string sqlServerString && !String.IsNullOrEmpty(sqlServerString))
                 {
                     opt.UseSqlServer(sqlServerString);
@@ -45,8 +49,12 @@ namespace MeuEstoque
                 }
             });
 
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+
             services.AddIdentityCore<User>()
-                .AddUserStore<ApplicationDatabase>();
+                .AddUserStore<UserRepository>();
 
             services.AddControllersWithViews();
 

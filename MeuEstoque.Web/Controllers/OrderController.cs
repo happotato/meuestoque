@@ -1,21 +1,16 @@
-using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using MeuEstoque.Data;
-using MeuEstoque.Models;
 using Microsoft.EntityFrameworkCore;
+using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
+using MeuEstoque.Domain.AggregatesModel.UserAggregate;
+using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
 
-namespace MeuEstoque.Controllers
+namespace MeuEstoque.Web.Controllers
 {
     public struct OrderCreationData
     {
@@ -35,13 +30,22 @@ namespace MeuEstoque.Controllers
     [Route("api/orders")]
     public class OrderController : ControllerBase
     {
-        private ApplicationDatabase DB { get; }
+        private IUserRepository UserRepository { get; }
+
+        private IProductRepository ProductRepository { get; }
+
+        private IOrderRepository OrderRepository { get; }
 
         private ILogger Logger { get; }
 
-        public OrderController(ILogger<UserController> logger, ApplicationDatabase db)
+        public OrderController(ILogger<UserController> logger,
+                               IUserRepository userRepository,
+                               IProductRepository productRepository,
+                               IOrderRepository orderRepository)
         {
-            DB = db;
+            UserRepository = userRepository;
+            ProductRepository = productRepository;
+            OrderRepository = orderRepository;
             Logger = logger;
         }
 
@@ -49,14 +53,12 @@ namespace MeuEstoque.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Order>> GetOrders()
         {
-            var user = DB.Users
-                .Where(user => user.Id == User.FindFirstValue(ClaimTypes.Sid))
-                .SingleOrDefault();
+            var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
 
             if (user == null)
                 return NotFound("User not found");
 
-            var orders = DB.Orders
+            var orders = OrderRepository.All
                 .Include(order => order.Product)
                 .Where(order => order.OwnerId == user.Id);
 
@@ -67,7 +69,7 @@ namespace MeuEstoque.Controllers
         [HttpGet("{id}")]
         public ActionResult<Order> GetOrderById(string id)
         {
-            var order = DB.Orders
+            var order = OrderRepository.All
                 .Include(order => order.Product)
                 .Where(order => order.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
                 .Where(order => order.Id == id)
@@ -83,7 +85,7 @@ namespace MeuEstoque.Controllers
         [HttpPost]
         public ActionResult<Order> CreateOrder(OrderCreationData data)
         {
-             var product = DB.Products
+            var product = ProductRepository.All
                 .Where(product => product.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
                 .Where(product => product.Id == data.ProductId)
                 .SingleOrDefault();
@@ -91,19 +93,15 @@ namespace MeuEstoque.Controllers
             if (product == null)
                 return NotFound("Product not found");
 
-            var newOrder = new Order
-            {
-                Price = data.Price,
-                Quantity = data.Quantity,
-                ProductId = data.ProductId,
-                OwnerId = data.OwnerId,
-            };
+            var newOrder = new Order(data.OwnerId, data.ProductId, data.Price, data.Quantity);
 
             product.Quantity += newOrder.Quantity;
+            
+            ProductRepository.Update(product);
+            ProductRepository.Save();
 
-            DB.Products.Update(product);
-            DB.Orders.Add(newOrder);
-            DB.SaveChanges();
+            OrderRepository.Add(newOrder);
+            OrderRepository.Save();
 
             return newOrder;
         }

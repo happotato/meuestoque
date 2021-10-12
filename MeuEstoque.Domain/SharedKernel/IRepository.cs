@@ -1,9 +1,20 @@
+using System.Linq;
+
 namespace MeuEstoque.Domain.SharedKernel
 {
+    // Use AddScoped
     public interface IRepository<T> where T : Entity, IAggregateRoot
     {
-        void AddOrUpdate(T obj);
+        IQueryable<T> All { get; }
+
+        T GetById(string id);
+
+        T Add(T obj);
+
+        T Update(T obj);
+
         void Remove(T obj);
-        T GetById(T obj);
+
+        void Save();
     }
 }

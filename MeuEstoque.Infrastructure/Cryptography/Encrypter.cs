@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace MeuEstoque.Data
+namespace MeuEstoque.Infrastructure.Cryptography
 {
     public sealed class Encrypter : IEncypter
     {

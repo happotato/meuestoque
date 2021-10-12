@@ -1,4 +1,4 @@
-namespace MeuEstoque.Data
+namespace MeuEstoque.Infrastructure.Cryptography
 {
     public interface IEncypter
     {

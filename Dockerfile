@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY MeuEstoque.Web/MeuEstoque.Web.csproj MeuEstoque.Web/MeuEstoque.Web.csproj
 COPY MeuEstoque.Domain/MeuEstoque.Domain.csproj MeuEstoque.Domain/MeuEstoque.Domain.csproj
-COPY MeuEstoque.Infrastrucure/MeuEstoque.Infrastrucure.csproj MeuEstoque.Infrastrucure/MeuEstoque.Infrastrucure.csproj
+COPY MeuEstoque.Infrastructure/MeuEstoque.Infrastructure.csproj MeuEstoque.Infrastructure/MeuEstoque.Infrastructure.csproj
 COPY MeuEstoque.sln MeuEstoque.sln
 
 RUN dotnet restore

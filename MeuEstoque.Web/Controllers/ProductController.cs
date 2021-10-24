@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using MeuEstoque.Domain.AggregatesModel.UserAggregate;
 using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
 using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
+using MeuEstoque.Domain.Services;
 
 namespace MeuEstoque.Web.Controllers
 {
@@ -52,16 +53,20 @@ namespace MeuEstoque.Web.Controllers
 
         private IOrderRepository OrderRepository { get; }
 
+        private IInventoryService InventoryService { get; }
+
         private ILogger Logger { get; }
 
         public ProductController(ILogger<UserController> logger,
                                IUserRepository userRepository,
                                IProductRepository productRepository,
-                               IOrderRepository orderRepository)
+                               IOrderRepository orderRepository,
+                               IInventoryService inventoryService)
         {
             UserRepository = userRepository;
             ProductRepository = productRepository;
             OrderRepository = orderRepository;
+            InventoryService = inventoryService;
             Logger = logger;
         }
 
@@ -104,18 +109,11 @@ namespace MeuEstoque.Web.Controllers
             if (user == null)
                 return NotFound("User not found");
 
-            var newProduct = new Product(user.Id, data.Name, data.Description,
+            var product = new Product(user.Id, data.Name, data.Description,
                 data.ImageUrl, data.Price, data.Quantity);
 
-            var newOrder = new Order(newProduct.OwnerId, newProduct.Id, newProduct.Price, data.Quantity);
-
-            ProductRepository.Add(newProduct);
-            OrderRepository.Add(newOrder);
-
-            ProductRepository.Save();
-            OrderRepository.Save();
-
-            return GetProductById(newProduct.Id);
+            InventoryService.AddProduct(product);
+            return product;
         }
 
         [Authorize]

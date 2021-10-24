@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
 using MeuEstoque.Domain.AggregatesModel.UserAggregate;
 using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
+using MeuEstoque.Domain.Services;
 
 namespace MeuEstoque.Web.Controllers
 {
@@ -36,16 +37,20 @@ namespace MeuEstoque.Web.Controllers
 
         private IOrderRepository OrderRepository { get; }
 
+        private IInventoryService InventoryService { get; }
+
         private ILogger Logger { get; }
 
         public OrderController(ILogger<UserController> logger,
                                IUserRepository userRepository,
                                IProductRepository productRepository,
-                               IOrderRepository orderRepository)
+                               IOrderRepository orderRepository,
+                               IInventoryService inventoryService)
         {
             UserRepository = userRepository;
             ProductRepository = productRepository;
             OrderRepository = orderRepository;
+            InventoryService = inventoryService;
             Logger = logger;
         }
 
@@ -85,25 +90,18 @@ namespace MeuEstoque.Web.Controllers
         [HttpPost]
         public ActionResult<Order> CreateOrder(OrderCreationData data)
         {
-            var product = ProductRepository.All
+            var exists = ProductRepository.All
                 .Where(product => product.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
                 .Where(product => product.Id == data.ProductId)
-                .SingleOrDefault();
+                .Any();
 
-            if (product == null)
+            if (!exists)
                 return NotFound("Product not found");
 
-            var newOrder = new Order(data.OwnerId, data.ProductId, data.Price, data.Quantity);
+            var order = new Order(data.OwnerId, data.ProductId, data.Price, data.Quantity);
+            InventoryService.AddOrder(order);
 
-            product.Quantity += newOrder.Quantity;
-            
-            ProductRepository.Update(product);
-            ProductRepository.Save();
-
-            OrderRepository.Add(newOrder);
-            OrderRepository.Save();
-
-            return newOrder;
+            return order;
         }
     }
 }

@@ -11,9 +11,11 @@ using Microsoft.Extensions.Hosting;
 using MeuEstoque.Infrastructure;
 using MeuEstoque.Infrastructure.Cryptography;
 using MeuEstoque.Infrastructure.Repositories;
+using MeuEstoque.Infrastructure.Services;
 using MeuEstoque.Domain.AggregatesModel.UserAggregate;
 using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
 using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
+using MeuEstoque.Domain.Services;
 
 namespace MeuEstoque.Web
 {
@@ -52,6 +54,7 @@ namespace MeuEstoque.Web
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IInventoryService, InventoryService>();
 
             services.AddIdentityCore<User>()
                 .AddUserStore<UserRepository>();

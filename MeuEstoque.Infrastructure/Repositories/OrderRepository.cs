@@ -5,7 +5,7 @@ namespace MeuEstoque.Infrastructure.Repositories
 {
     public sealed class OrderRepository : IOrderRepository
     {
-        ApplicationContext Context { get; }
+        private ApplicationContext Context { get; }
 
         public IQueryable<Order> All => Context.Orders;
 
@@ -16,7 +16,10 @@ namespace MeuEstoque.Infrastructure.Repositories
 
         public Order Add(Order obj)
         {
-            return Context.Orders.Add(obj).Entity;
+            var updatedOrder = Context.Orders.Add(obj).Entity;
+            Context.SaveChanges();
+
+            return updatedOrder;
         }
 
         public Order GetById(string id)
@@ -27,16 +30,15 @@ namespace MeuEstoque.Infrastructure.Repositories
         
         public Order Update(Order obj)
         {
-            return Context.Orders.Update(obj).Entity;
+            var updatedOrder = Context.Orders.Update(obj).Entity;
+            Context.SaveChanges();
+
+            return updatedOrder;
         }
 
         public void Remove(Order obj)
         {
             Context.Orders.Remove(obj);
-        }
-
-        public void Save()
-        {
             Context.SaveChanges();
         }
     }

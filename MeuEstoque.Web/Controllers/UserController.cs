@@ -54,7 +54,8 @@ namespace MeuEstoque.Web.Controllers
                 .Where(user => user.Email == data.Email || user.Username == data.Username)
                 .Count();
 
-            if (duplicated > 0) {
+            if (duplicated > 0)
+            {
                 return UnprocessableEntity("Username or Email already in use");
             }
 

@@ -5,7 +5,7 @@ namespace MeuEstoque.Infrastructure.Repositories
 {
     public sealed class ProductRepository : IProductRepository
     {
-        ApplicationContext Context { get; }
+        private ApplicationContext Context { get; }
 
         public IQueryable<Product> All => Context.Products;
 
@@ -16,7 +16,10 @@ namespace MeuEstoque.Infrastructure.Repositories
 
         public Product Add(Product obj)
         {
-            return Context.Products.Add(obj).Entity;
+            var updatedProduct = Context.Products.Add(obj).Entity;
+            Context.SaveChanges();
+
+            return updatedProduct;
         }
 
         public Product GetById(string id)
@@ -27,18 +30,16 @@ namespace MeuEstoque.Infrastructure.Repositories
 
         public Product Update(Product obj)
         {
-            return Context.Products.Update(obj).Entity;
+            var updatedProduct = Context.Products.Update(obj).Entity;
+            Context.SaveChanges();
+
+            return updatedProduct;
         }
 
 
         public void Remove(Product obj)
         {
             Context.Products.Remove(obj);
-        }
-
-        public void Save()
-        {
-            Context.SaveChanges();
         }
     }
 }

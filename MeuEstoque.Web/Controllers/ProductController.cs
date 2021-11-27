@@ -104,7 +104,6 @@ namespace MeuEstoque.Web.Controllers
             product.Description = data.Description;
 
             ProductRepository.Update(product);
-            ProductRepository.Save();
 
             return new ProductDTO(product);
         }

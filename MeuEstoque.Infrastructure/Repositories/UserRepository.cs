@@ -10,9 +10,9 @@ namespace MeuEstoque.Infrastructure.Repositories
 {
     public sealed class UserRepository : IUserRepository, IUserPasswordStore<User>
     {
-        ApplicationContext Context { get; }
+        private ApplicationContext Context { get; }
 
-        IEncypter Encrypter { get; }
+        private IEncypter Encrypter { get; }
 
         public IQueryable<User> All => Context.Users;
 
@@ -24,7 +24,10 @@ namespace MeuEstoque.Infrastructure.Repositories
 
         public User Add(User obj)
         {
-            return Context.Users.Add(obj).Entity;
+            var updatedUser = Context.Users.Add(obj).Entity;
+            Context.SaveChanges();
+
+            return updatedUser;
         }
 
         public User GetById(string id)
@@ -35,17 +38,15 @@ namespace MeuEstoque.Infrastructure.Repositories
 
         public User Update(User obj)
         {
-            return Context.Users.Update(obj).Entity;
-        }
+            var updatedUser = Context.Users.Update(obj).Entity;
+            Context.SaveChanges();
 
+            return updatedUser;
+        }
 
         public void Remove(User obj)
         {
             Context.Users.Remove(obj);
-        }
-
-        public void Save()
-        {
             Context.SaveChanges();
         }
 

@@ -14,7 +14,5 @@ namespace MeuEstoque.Domain.SharedKernel
         T Update(T obj);
 
         void Remove(T obj);
-
-        void Save();
     }
 }

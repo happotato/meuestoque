@@ -16,7 +16,7 @@ namespace MeuEstoque.Infrastructure
 
         public DbSet<Order> Orders { get; set; }
 
-        IEncypter Encrypter { get; }
+        public IEncypter Encrypter { get; }
 
         public ApplicationContext(DbContextOptions<ApplicationContext> options, IEncypter encrypter)
           : base(options)

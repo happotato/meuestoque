@@ -1,11 +1,11 @@
 import * as React from "react";
-import { CreateOrder, getProducts, Order, Product } from "~/api";
+import { CreateOrderDTO, getProducts, Order, Product } from "~/api";
 import { Async, AsyncResult } from "~/components/Async";
 import { useSelector } from "~/store";
 
 export interface OrderEditorProps {
   defaultOrder?: Order;
-  onSubmit?: (order: CreateOrder) => void;
+  onSubmit?: (order: CreateOrderDTO) => void;
 }
 
 export function OrderEditor(props: OrderEditorProps) {

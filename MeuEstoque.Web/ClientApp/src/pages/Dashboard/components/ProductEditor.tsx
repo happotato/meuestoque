@@ -1,9 +1,9 @@
 import * as React from "react";
-import { CreateProduct, Product } from "~/api";
+import { CreateProductDTO, Product } from "~/api";
 
 export interface ProductEditorProps {
   defaultProduct?: Product;
-  onSubmit?: (product: CreateProduct) => void;
+  onSubmit?: (product: CreateProductDTO) => void;
 }
 
 export function ProductEditor(props: ProductEditorProps) {

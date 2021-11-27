@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
@@ -10,23 +9,10 @@ using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
 using MeuEstoque.Domain.AggregatesModel.UserAggregate;
 using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
 using MeuEstoque.Domain.Services;
+using MeuEstoque.Web.DTO;
 
 namespace MeuEstoque.Web.Controllers
 {
-    public struct OrderCreationData
-    {
-        [Required]
-        public decimal Price { get; set; }
-
-        [Required]
-        public long Quantity { get; set; }
-
-        [Required]
-        public string ProductId { get; set; }
-
-        public string OwnerId { get; set; }
-    }
-
     [ApiController]
     [Route("api/orders")]
     public class OrderController : ControllerBase
@@ -65,14 +51,15 @@ namespace MeuEstoque.Web.Controllers
 
             var orders = OrderRepository.All
                 .Include(order => order.Product)
-                .Where(order => order.OwnerId == user.Id);
+                .Where(order => order.OwnerId == user.Id)
+                .Select(order => new OrderDTO(order));
 
             return Ok(orders);
         }
 
         [Authorize]
         [HttpGet("{id}")]
-        public ActionResult<Order> GetOrderById(string id)
+        public ActionResult<OrderDTO> GetOrderById(string id)
         {
             var order = OrderRepository.All
                 .Include(order => order.Product)
@@ -83,12 +70,12 @@ namespace MeuEstoque.Web.Controllers
             if (order == null)
                 return NotFound("Order not found");
 
-            return Ok(order);
+            return new OrderDTO(order);
         }
 
         [Authorize]
         [HttpPost]
-        public ActionResult<Order> CreateOrder(OrderCreationData data)
+        public ActionResult<OrderDTO> CreateOrder(CreateOrderDTO data)
         {
             var exists = ProductRepository.All
                 .Where(product => product.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
@@ -101,7 +88,7 @@ namespace MeuEstoque.Web.Controllers
             var order = new Order(data.OwnerId, data.ProductId, data.Price, data.Quantity);
             InventoryService.AddOrder(order);
 
-            return order;
+            return new OrderDTO(order);
         }
     }
 }

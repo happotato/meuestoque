@@ -1,16 +1,16 @@
-export interface DBItem {
+export interface Entity {
   id: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface User extends DBItem {
+export interface User extends Entity {
   name: string;
   username: string;
   email: string;
 }
 
-export interface Product extends DBItem {
+export interface Product extends Entity {
   name: string;
   description: string;
   imageUrl?: string;
@@ -19,7 +19,7 @@ export interface Product extends DBItem {
   ownerId: string; 
 }
 
-export interface Order extends DBItem {
+export interface Order extends Entity {
   price: number;
   quantity: number;
   product: Product;
@@ -34,7 +34,7 @@ export interface SignUp {
   password: string;
 }
 
-export interface CreateProduct {
+export interface CreateProductDTO {
   name: string;
   description: string;
   imageUrl?: string;
@@ -42,7 +42,14 @@ export interface CreateProduct {
   quantity: number;
 }
 
-export interface CreateOrder {
+export interface PatchProductDTO {
+  name: string;
+  description: string;
+  imageUrl?: string;
+  price: number;
+}
+
+export interface CreateOrderDTO {
   price: number;
   quantity: number;
   productId: string;
@@ -136,10 +143,10 @@ export async function getProducts(abort?: AbortSignal) {
   return await res.json() as Product[];
 }
 
-export async function createProduct(data: CreateProduct, abort?: AbortSignal) {
+export async function createProduct(dto: CreateProductDTO, abort?: AbortSignal) {
   const res = await fetch(`/api/products`, {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify(dto),
     headers: {
       "Content-Type": "application/json"
     },
@@ -153,10 +160,10 @@ export async function createProduct(data: CreateProduct, abort?: AbortSignal) {
   return await res.json() as Product;
 }
 
-export async function patchProduct(id: string, data: CreateProduct, abort?: AbortSignal) {
+export async function patchProduct(id: string, dto: PatchProductDTO, abort?: AbortSignal) {
   const res = await fetch(`/api/products/${id}`, {
     method: "PATCH",
-    body: JSON.stringify(data),
+    body: JSON.stringify(dto),
     headers: {
       "Content-Type": "application/json"
     },
@@ -196,10 +203,10 @@ export async function getOrders(abort?: AbortSignal) {
   return await res.json() as Order[];
 }
 
-export async function createOrder(data: CreateOrder, abort?: AbortSignal) {
+export async function createOrder(dto: CreateOrderDTO, abort?: AbortSignal) {
   const res = await fetch(`/api/orders`, {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify(dto),
     headers: {
       "Content-Type": "application/json"
     },

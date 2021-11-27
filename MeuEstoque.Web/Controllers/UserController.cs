@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
@@ -12,37 +11,10 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using MeuEstoque.Domain.AggregatesModel.UserAggregate;
+using MeuEstoque.Web.DTO;
 
 namespace MeuEstoque.Web.Controllers
 {
-    public struct UserCreationData
-    {
-        [Required]
-        public string Name { get; set; }
-
-        [Required]
-        [MinLength(4)]
-        public string Username { get; set; }
-
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-
-        [Required]
-        [MinLength(8)]
-        [MaxLength(24)]
-        public string Password { get; set; }
-    }
-
-    public struct UserLoginData
-    {
-        [Required]
-        public string Email { get; set; }
-
-        [Required]
-        public string Password { get; set; }
-    }
-
     [ApiController]
     [Route("api/[controller]")]
     public class UserController : ControllerBase
@@ -62,15 +34,19 @@ namespace MeuEstoque.Web.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<User>> GetCurrentUser()
+        public async Task<ActionResult<UserDTO>> GetCurrentUser()
         {
             var user = await UserStore.FindByIdAsync(User.FindFirstValue(ClaimTypes.Sid), CancellationToken.None);
-            return Ok(user);
+
+            if (user == null)
+                return NotFound();
+
+            return new UserDTO(user);
         }
 
         [AllowAnonymous]
         [HttpPost("create")]
-        public async Task<ActionResult<User>> CreateUser(UserCreationData data)
+        public async Task<ActionResult<UserDTO>> CreateUser(CreateUserDTO data)
         {
             var user = new User(data.Name, data.Username, data.Email, data.Password);
 
@@ -84,7 +60,7 @@ namespace MeuEstoque.Web.Controllers
 
             await UserStore.CreateAsync(user, CancellationToken.None);
 
-            return await Login(new UserLoginData
+            return await Login(new UserLoginDTO
             {
                 Email = user.Email,
                 Password = user.Password,
@@ -93,7 +69,7 @@ namespace MeuEstoque.Web.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<ActionResult<User>> Login(UserLoginData data)
+        public async Task<ActionResult<UserDTO>> Login(UserLoginDTO data)
         {
             var user = UserRepository.All
                 .Where(user => user.Email == data.Email && user.Password == data.Password)
@@ -119,7 +95,7 @@ namespace MeuEstoque.Web.Controllers
 
             await HttpContext.SignInAsync(scheme, claimsPrincipal, properties);
 
-            return Ok(user);
+            return new UserDTO(user);
         }
 
         [Authorize]

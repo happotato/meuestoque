@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
@@ -9,40 +8,10 @@ using MeuEstoque.Domain.AggregatesModel.UserAggregate;
 using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
 using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
 using MeuEstoque.Domain.Services;
+using MeuEstoque.Web.DTO;
 
 namespace MeuEstoque.Web.Controllers
 {
-    public struct ProductCreationData
-    {
-        [Required]
-        public string Name { get; set; }
-
-        [Required]
-        public string Description { get; set; }
-
-        public string ImageUrl { get; set; }
-
-        [Required]
-        public decimal Price { get; set; }
-
-        [Required]
-        public int Quantity { get; set; }
-    }
-
-    public struct ProductPatchData
-    {
-        [Required]
-        public string Name { get; set; }
-
-        [Required]
-        public string Description { get; set; }
-
-        public string ImageUrl { get; set; }
-
-        [Required]
-        public decimal Price { get; set; }
-    }
-
     [ApiController]
     [Route("api/products")]
     public class ProductController : ControllerBase
@@ -72,7 +41,7 @@ namespace MeuEstoque.Web.Controllers
 
         [Authorize]
         [HttpGet]
-        public ActionResult<IEnumerable<Product>> GetProducts()
+        public ActionResult<IEnumerable<ProductDTO>> GetProducts()
         {
             var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
 
@@ -80,14 +49,16 @@ namespace MeuEstoque.Web.Controllers
                 return NotFound("User not found");
 
             var products = ProductRepository.All
-                .Where(product => product.OwnerId == user.Id);
+                .Where(product => product.OwnerId == user.Id)
+                .Select(product => new ProductDTO(product))
+                .ToList();
 
             return Ok(products);
         }
 
         [Authorize]
         [HttpGet("{id}")]
-        public ActionResult<Product> GetProductById(string id)
+        public ActionResult<ProductDTO> GetProductById(string id)
         {
             var product = ProductRepository.All
                 .Where(product => product.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
@@ -97,12 +68,12 @@ namespace MeuEstoque.Web.Controllers
             if (product == null)
                 return NotFound("Product not found");
 
-            return Ok(product);
+            return new ProductDTO(product);
         }
 
         [Authorize]
         [HttpPost]
-        public ActionResult<Product> CreateProduct(ProductCreationData data)
+        public ActionResult<ProductDTO> CreateProduct(CreateProductDTO data)
         {
             var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
 
@@ -113,12 +84,12 @@ namespace MeuEstoque.Web.Controllers
                 data.ImageUrl, data.Price, data.Quantity);
 
             InventoryService.AddProduct(product);
-            return product;
+            return new ProductDTO(product);
         }
 
         [Authorize]
         [HttpPatch("{id}")]
-        public ActionResult<Product> PatchProduct(string id, ProductPatchData data)
+        public ActionResult<ProductDTO> PatchProduct(string id, PatchProductDTO data)
         {
             var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
 
@@ -135,7 +106,7 @@ namespace MeuEstoque.Web.Controllers
             ProductRepository.Update(product);
             ProductRepository.Save();
 
-            return product;
+            return new ProductDTO(product);
         }
     }
 }

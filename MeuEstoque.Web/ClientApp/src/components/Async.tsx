@@ -21,7 +21,7 @@ export interface AsyncProps<T, E> {
   children: (result: AsyncResult<T, E>) => JSX.Element;
 }
 
-export function Async<T, E = unknown>(props: AsyncProps<T, E>) {
+export function Async<T, E>(props: AsyncProps<T, E>) {
   const [state, setState] = React.useState<AsyncResult<T, E>>({
     state: "loading",
   });
@@ -43,7 +43,7 @@ export function Async<T, E = unknown>(props: AsyncProps<T, E>) {
 
         setState({
           state: "error",
-          value: e,
+          value: e as E,
         });
       }
     }

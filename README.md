@@ -2,7 +2,7 @@
 
 ## Dependencies
 
-- [NodeJS](https://nodejs.org/)
+- [NodeJS 16](https://nodejs.org/)
 - [.NET 5.0](https://dotnet.microsoft.com/download/dotnet/5.0)
 
 ## Setup

@@ -22,6 +22,11 @@ export interface AsyncProps<T, E> {
 }
 
 export function Async<T, E>(props: AsyncProps<T, E>) {
+  const result = useAsync<T, E>(props.func);
+  return props.children(result);
+}
+
+export function useAsync<T, E>(func: (signal: AbortSignal) => Promise<T>) {
   const [state, setState] = React.useState<AsyncResult<T, E>>({
     state: "loading",
   });
@@ -31,7 +36,7 @@ export function Async<T, E>(props: AsyncProps<T, E>) {
 
     async function call() {
       try {
-        const res = await props.func(abortController.signal);
+        const res = await func(abortController.signal);
         setState({
           state: "complete",
           value: res,
@@ -55,5 +60,5 @@ export function Async<T, E>(props: AsyncProps<T, E>) {
     };
   }, []);
 
-  return props.children(state);
+  return state;
 }

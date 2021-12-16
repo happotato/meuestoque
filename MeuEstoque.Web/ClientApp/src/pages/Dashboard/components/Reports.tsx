@@ -1,11 +1,13 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 import { createOrder, getOrders, Order } from "~/api";
+import { useMediaQuery } from "@/Helpers";
 import { OrderComponent } from "./OrderComponent";
 import { OrderEditor } from "./OrderEditor";
 
 export function Reports() {
   const [orders, setOrders] = React.useState<undefined | Order[]>(undefined);
+  const showEditor = useMediaQuery("(min-width: 1200px)");
 
   React.useEffect(() => {
     const abortController = new AbortController();
@@ -37,13 +39,15 @@ export function Reports() {
           {orders && (
             <b className="text-muted">{`${orders?.length} Order(s)`}</b>
           )}
-          <Link
-            className="btn btn-sm btn-primary ms-auto d-xl-none"
-            to="/dashboard/reports/new-order"
-          >
-            <i className="fas fa-plus me-2"></i>
-            <span>{"New order"}</span>
-          </Link>
+          {!showEditor && (
+            <Link
+              className="btn btn-sm btn-primary ms-auto"
+              to="/dashboard/reports/new-order"
+            >
+              <i className="fas fa-plus me-2"></i>
+              <span>{"New order"}</span>
+            </Link>
+          )}
         </div>
         <div className="row">
           {orders && (
@@ -57,19 +61,21 @@ export function Reports() {
           )}
         </div>
       </div>
-      <div className="col-3 d-none d-xl-block border-start vh-100 bg-light p-4 sticky-top overflow-auto">
-        <div className="d-flex flex-row align-items-center mb-4">
-          <b className="text-muted">{"Create a new Order"}</b>
+      {showEditor && (
+        <div className="col-3 border-start vh-100 bg-light p-4 sticky-top overflow-auto">
+          <div className="d-flex flex-row align-items-center mb-4">
+            <b className="text-muted">{"Create a new Order"}</b>
+          </div>
+          <div className="row">
+            <OrderEditor
+              onSubmit={async (order) => {
+                const newOrder = await createOrder(order);
+                setOrders([newOrder].concat(orders ?? []));
+              }}
+            />
+          </div>
         </div>
-        <div className="row">
-          <OrderEditor
-            onSubmit={async (order) => {
-              const newOrder = await createOrder(order);
-              setOrders([newOrder].concat(orders ?? []));
-            }}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

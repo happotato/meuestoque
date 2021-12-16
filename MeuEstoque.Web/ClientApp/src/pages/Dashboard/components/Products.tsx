@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 import { createProduct, getProducts, Product } from "~/api";
+import { useMediaQuery } from "~/components/Helpers";
 import { ProductComponent } from "./ProductComponent";
 import { ProductEditor } from "./ProductEditor";
 
@@ -8,6 +9,8 @@ export function Products() {
   const [products, setProducts] = React.useState<undefined | Product[]>(
     undefined
   );
+
+  const showEditor = useMediaQuery("(min-width: 1200px)");
 
   React.useEffect(() => {
     const abortController = new AbortController();
@@ -39,13 +42,15 @@ export function Products() {
           {products && (
             <b className="text-muted">{`${products?.length} Product(s)`}</b>
           )}
-          <Link
-            className="btn btn-sm btn-primary ms-auto d-xl-none"
-            to="/dashboard/products/new"
-          >
-            <i className="fas fa-plus me-2"></i>
-            <span>{"New product"}</span>
-          </Link>
+          {!showEditor && (
+            <Link
+              className="btn btn-sm btn-primary ms-auto d-xl-none"
+              to="/dashboard/products/new"
+            >
+              <i className="fas fa-plus me-2"></i>
+              <span>{"New product"}</span>
+            </Link>
+          )}
         </div>
         <div className="row">
           {products && (
@@ -59,19 +64,21 @@ export function Products() {
           )}
         </div>
       </div>
-      <div className="col-3 d-none d-xl-block border-start vh-100 bg-light p-4 sticky-top overflow-auto">
-        <div className="d-flex flex-row align-items-center mb-4">
-          <b className="text-muted">{"Create a new Product"}</b>
+      {showEditor && (
+        <div className="col-3 border-start vh-100 bg-light p-4 sticky-top overflow-auto">
+          <div className="d-flex flex-row align-items-center mb-4">
+            <b className="text-muted">{"Create a new Product"}</b>
+          </div>
+          <div className="row">
+            <ProductEditor
+              onSubmit={async (product) => {
+                const newProduct = await createProduct(product);
+                setProducts([newProduct].concat(products ?? []));
+              }}
+            />
+          </div>
         </div>
-        <div className="row">
-          <ProductEditor
-            onSubmit={async (product) => {
-              const newProduct = await createProduct(product);
-              setProducts([newProduct].concat(products ?? []));
-            }}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -23,10 +23,8 @@ public sealed class ProductDTO : EntityDTO
     [Required]
     public string OwnerId { get; set; }
 
-    public ProductDTO(Product product)
+    public ProductDTO(Product product) : base(product)
     {
-        SetEntityValues(product);
-
         Name = product.Name;
         Description = product.Description;
         ImageUrl = product.ImageUrl;

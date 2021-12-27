@@ -14,10 +14,8 @@ public sealed class UserDTO : EntityDTO
     [Required]
     public string Email { get; set; }
 
-    public UserDTO(User user)
+    public UserDTO(User user) : base(user)
     {
-        SetEntityValues(user);
-
         Name = user.Name;
         Username = user.Username;
         Email = user.Email;

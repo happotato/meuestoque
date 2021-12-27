@@ -15,7 +15,7 @@ public abstract class EntityDTO
     [Required]
     public DateTime UpdatedAt { get; set; }
 
-    public void SetEntityValues(Entity entity)
+    public EntityDTO(Entity entity)
     {
         Id = entity.Id;
         CreatedAt = entity.CreatedAt;

@@ -20,10 +20,8 @@ public sealed class OrderDTO : EntityDTO
     [Required]
     public string OwnerId { get; set; }
 
-    public OrderDTO(Order order)
+    public OrderDTO(Order order) : base(order)
     {
-        SetEntityValues(order);
-
         Price = order.Price;
         Quantity = order.Quantity;
         ProductId = order.ProductId;

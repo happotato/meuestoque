@@ -22,12 +22,9 @@ namespace MeuEstoque.Domain.SharedKernel
 
         public static string GenerateUUID()
         {
-            var bytes = new byte[6];
+            var bytes = RandomNumberGenerator.GetBytes(6);
 
-            using (var crypto = new RNGCryptoServiceProvider())
-                crypto.GetBytes(bytes);
-
-            return Uri.EscapeUriString(Convert.ToBase64String(bytes));
+            return Uri.EscapeDataString(Convert.ToBase64String(bytes));
         }
     }
 }

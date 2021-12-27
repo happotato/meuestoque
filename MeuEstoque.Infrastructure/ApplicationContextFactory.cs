@@ -8,7 +8,7 @@ namespace MeuEstoque.Infrastructure
         public ApplicationContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationContext>();
-            optionsBuilder.UseSqlite("Data Source=:memory:");
+            optionsBuilder.UseSqlite("Data Source=Storage/sqlite.db");
 
             return new ApplicationContext(optionsBuilder.Options, null);
         }

@@ -10,11 +10,11 @@ namespace MeuEstoque.Infrastructure
 {
     public sealed class ApplicationContext : DbContext
     {
-        public DbSet<User> Users { get; set; }
+        public DbSet<User> Users { get; private set; }
 
-        public DbSet<Product> Products { get; set; }
+        public DbSet<Product> Products { get; private set; }
 
-        public DbSet<Order> Orders { get; set; }
+        public DbSet<Order> Orders { get; private set; }
 
         public IEncypter Encrypter { get; }
 

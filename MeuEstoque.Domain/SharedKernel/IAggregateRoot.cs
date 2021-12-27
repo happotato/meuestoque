@@ -1,4 +1,3 @@
-namespace MeuEstoque.Domain.SharedKernel
-{
-    public interface IAggregateRoot {}
-}
+namespace MeuEstoque.Domain.SharedKernel;
+
+public interface IAggregateRoot {}

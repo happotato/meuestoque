@@ -1,45 +1,44 @@
 using System.Linq;
 using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
 
-namespace MeuEstoque.Infrastructure.Repositories
+namespace MeuEstoque.Infrastructure.Repositories;
+
+public sealed class ProductRepository : IProductRepository
 {
-    public sealed class ProductRepository : IProductRepository
+    private ApplicationContext Context { get; }
+
+    public IQueryable<Product> All => Context.Products;
+
+    public ProductRepository(ApplicationContext context)
     {
-        private ApplicationContext Context { get; }
+        Context = context;
+    }
 
-        public IQueryable<Product> All => Context.Products;
+    public Product Add(Product obj)
+    {
+        var updatedProduct = Context.Products.Add(obj).Entity;
+        Context.SaveChanges();
 
-        public ProductRepository(ApplicationContext context)
-        {
-            Context = context;
-        }
+        return updatedProduct;
+    }
 
-        public Product Add(Product obj)
-        {
-            var updatedProduct = Context.Products.Add(obj).Entity;
-            Context.SaveChanges();
+    public Product GetById(string id)
+    {
+        return Context.Products
+            .SingleOrDefault(Product => Product.Id == id);
+    }
 
-            return updatedProduct;
-        }
+    public Product Update(Product obj)
+    {
+        var updatedProduct = Context.Products.Update(obj).Entity;
+        Context.SaveChanges();
 
-        public Product GetById(string id)
-        {
-            return Context.Products
-                .SingleOrDefault(Product => Product.Id == id);
-        }
-
-        public Product Update(Product obj)
-        {
-            var updatedProduct = Context.Products.Update(obj).Entity;
-            Context.SaveChanges();
-
-            return updatedProduct;
-        }
+        return updatedProduct;
+    }
 
 
-        public void Remove(Product obj)
-        {
-            Context.Products.Remove(obj);
-        }
+    public void Remove(Product obj)
+    {
+        Context.Products.Remove(obj);
     }
 }

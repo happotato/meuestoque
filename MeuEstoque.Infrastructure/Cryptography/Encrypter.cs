@@ -2,61 +2,60 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 
-namespace MeuEstoque.Infrastructure.Cryptography
+namespace MeuEstoque.Infrastructure.Cryptography;
+
+public sealed class Encrypter : IEncypter
 {
-    public sealed class Encrypter : IEncypter
+    public byte[] Key { get; }
+
+    public byte[] IV { get; }
+
+    public Encrypter(byte[] key, byte[] iv)
     {
-        public byte[] Key { get; }
+        Key = key;
+        IV = iv;
+    }
 
-        public byte[] IV { get; }
+    public string Encrypt(string text)
+    {
+        byte[] array;
 
-        public Encrypter(byte[] key, byte[] iv)
+        using (Aes aes = Aes.Create())
         {
-            Key = key;
-            IV = iv;
-        }
+            aes.Key = Key;
+            aes.IV = IV;
 
-        public string Encrypt(string text)
-        {
-            byte[] array;
+            ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
 
-            using (Aes aes = Aes.Create())
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
             {
-                aes.Key = Key;
-                aes.IV = IV;
-
-                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-
-                using (MemoryStream memoryStream = new MemoryStream())
-                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
+                using (StreamWriter streamWriter = new StreamWriter(cryptoStream))
                 {
-                    using (StreamWriter streamWriter = new StreamWriter(cryptoStream))
-                    {
-                        streamWriter.Write(text);
-                    }
-
-                    array = memoryStream.ToArray();
+                    streamWriter.Write(text);
                 }
+
+                array = memoryStream.ToArray();
             }
-
-            return Convert.ToBase64String(array);
         }
 
-        public string Decrypt(string text)
+        return Convert.ToBase64String(array);
+    }
+
+    public string Decrypt(string text)
+    {
+        using (Aes aes = Aes.Create())
         {
-            using (Aes aes = Aes.Create())
+            aes.Key = Key;
+            aes.IV = IV;
+
+            ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+            using (MemoryStream memoryStream = new MemoryStream(Convert.FromBase64String(text)))
+            using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+            using (StreamReader streamReader = new StreamReader(cryptoStream))
             {
-                aes.Key = Key;
-                aes.IV = IV;
-
-                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-
-                using (MemoryStream memoryStream = new MemoryStream(Convert.FromBase64String(text)))
-                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
-                using (StreamReader streamReader = new StreamReader(cryptoStream))
-                {
-                    return streamReader.ReadToEnd();
-                }
+                return streamReader.ReadToEnd();
             }
         }
     }

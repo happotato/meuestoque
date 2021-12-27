@@ -17,104 +17,103 @@ using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
 using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
 using MeuEstoque.Domain.Services;
 
-namespace MeuEstoque.Web
+namespace MeuEstoque.Web;
+
+public class Startup
 {
-    public class Startup
+    public IConfiguration Configuration { get; }
+
+    public Startup(IConfiguration configuration)
     {
-        public IConfiguration Configuration { get; }
+        Configuration = configuration;
+    }
 
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+    // This method gets called by the runtime. Use this method to add services to the container.
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddSingleton<IEncypter>(new Encrypter(
+            Convert.FromBase64String(Configuration["Crypto:Key"]),
+            Convert.FromBase64String(Configuration["Crypto:IV"])
+        ));
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddSingleton<IEncypter>(new Encrypter(
-                Convert.FromBase64String(Configuration["Crypto:Key"]),
-                Convert.FromBase64String(Configuration["Crypto:IV"])
-            ));
-
-            services.AddDbContext<ApplicationContext>(opt => {
-                if (Configuration["DB:SQLServer:ConnectionString"] is string sqlServerString && !String.IsNullOrEmpty(sqlServerString))
-                {
-                    opt.UseSqlServer(sqlServerString);
-                }
-                else if (Configuration["DB:SQLite:ConnectionString"] is string sqlLiteString && !String.IsNullOrEmpty(sqlLiteString))
-                {
-                    opt.UseSqlite(sqlLiteString);
-                }
-                else
-                {
-                   opt.UseInMemoryDatabase("default");
-                }
-            });
-
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IProductRepository, ProductRepository>();
-            services.AddScoped<IOrderRepository, OrderRepository>();
-            services.AddScoped<IInventoryService, InventoryService>();
-
-            services.AddIdentityCore<User>()
-                .AddUserStore<UserRepository>();
-
-            services.AddControllersWithViews();
-
-            // In production, the React files will be served from this directory
-            services.AddSpaStaticFiles(configuration =>
+        services.AddDbContext<ApplicationContext>(opt => {
+            if (Configuration["DB:SQLServer:ConnectionString"] is string sqlServerString && !String.IsNullOrEmpty(sqlServerString))
             {
-                configuration.RootPath = "ClientApp/public";
-            });
-
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-                {
-                    options.Cookie.HttpOnly = false;
-                    options.Cookie.SameSite = SameSiteMode.None;
-                });
-
-            services.AddAuthorization();
-
-            services.Configure<CookiePolicyOptions>(options =>
+                opt.UseSqlServer(sqlServerString);
+            }
+            else if (Configuration["DB:SQLite:ConnectionString"] is string sqlLiteString && !String.IsNullOrEmpty(sqlLiteString))
             {
-                options.MinimumSameSitePolicy = SameSiteMode.Strict;
-                options.HttpOnly = HttpOnlyPolicy.None;
-            });
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
+                opt.UseSqlite(sqlLiteString);
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                opt.UseInMemoryDatabase("default");
             }
+        });
 
-            app.UseStaticFiles();
-            app.UseSpaStaticFiles();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IInventoryService, InventoryService>();
 
-            app.UseRouting();
+        services.AddIdentityCore<User>()
+            .AddUserStore<UserRepository>();
 
-            app.UseCookiePolicy();
-            app.UseAuthentication();
-            app.UseAuthorization();
+        services.AddControllersWithViews();
 
-            app.UseEndpoints(endpoints =>
+        // In production, the React files will be served from this directory
+        services.AddSpaStaticFiles(configuration =>
+        {
+            configuration.RootPath = "ClientApp/public";
+        });
+
+        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller}/{action=Index}/{id?}");
+                options.Cookie.HttpOnly = false;
+                options.Cookie.SameSite = SameSiteMode.None;
             });
 
-            app.UseSpa(spa =>
-            {
-                
-            });
+        services.AddAuthorization();
+
+        services.Configure<CookiePolicyOptions>(options =>
+        {
+            options.MinimumSameSitePolicy = SameSiteMode.Strict;
+            options.HttpOnly = HttpOnlyPolicy.None;
+        });
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
         }
+        else
+        {
+            app.UseExceptionHandler("/Error");
+        }
+
+        app.UseStaticFiles();
+        app.UseSpaStaticFiles();
+
+        app.UseRouting();
+
+        app.UseCookiePolicy();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllerRoute(
+                name: "default",
+                pattern: "{controller}/{action=Index}/{id?}");
+        });
+
+        app.UseSpa(spa =>
+        {
+            
+        });
     }
 }

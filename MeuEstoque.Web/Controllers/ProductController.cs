@@ -10,102 +10,101 @@ using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
 using MeuEstoque.Domain.Services;
 using MeuEstoque.Web.DTO;
 
-namespace MeuEstoque.Web.Controllers
+namespace MeuEstoque.Web.Controllers;
+
+[ApiController]
+[Route("api/products")]
+public class ProductController : ControllerBase
 {
-    [ApiController]
-    [Route("api/products")]
-    public class ProductController : ControllerBase
+    private IUserRepository UserRepository { get; }
+
+    private IProductRepository ProductRepository { get; }
+
+    private IOrderRepository OrderRepository { get; }
+
+    private IInventoryService InventoryService { get; }
+
+    private ILogger Logger { get; }
+
+    public ProductController(ILogger<UserController> logger,
+                            IUserRepository userRepository,
+                            IProductRepository productRepository,
+                            IOrderRepository orderRepository,
+                            IInventoryService inventoryService)
     {
-        private IUserRepository UserRepository { get; }
+        UserRepository = userRepository;
+        ProductRepository = productRepository;
+        OrderRepository = orderRepository;
+        InventoryService = inventoryService;
+        Logger = logger;
+    }
 
-        private IProductRepository ProductRepository { get; }
+    [Authorize]
+    [HttpGet]
+    public ActionResult<IEnumerable<ProductDTO>> GetProducts()
+    {
+        var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
 
-        private IOrderRepository OrderRepository { get; }
+        if (user == null)
+            return NotFound("User not found");
 
-        private IInventoryService InventoryService { get; }
+        var products = ProductRepository.All
+            .Where(product => product.OwnerId == user.Id)
+            .Select(product => new ProductDTO(product))
+            .ToList();
 
-        private ILogger Logger { get; }
+        return Ok(products);
+    }
 
-        public ProductController(ILogger<UserController> logger,
-                               IUserRepository userRepository,
-                               IProductRepository productRepository,
-                               IOrderRepository orderRepository,
-                               IInventoryService inventoryService)
-        {
-            UserRepository = userRepository;
-            ProductRepository = productRepository;
-            OrderRepository = orderRepository;
-            InventoryService = inventoryService;
-            Logger = logger;
-        }
+    [Authorize]
+    [HttpGet("{id}")]
+    public ActionResult<ProductDTO> GetProductById(string id)
+    {
+        var product = ProductRepository.All
+            .Where(product => product.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
+            .Where(product => product.Id == id)
+            .SingleOrDefault();
 
-        [Authorize]
-        [HttpGet]
-        public ActionResult<IEnumerable<ProductDTO>> GetProducts()
-        {
-            var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
+        if (product == null)
+            return NotFound("Product not found");
 
-            if (user == null)
-                return NotFound("User not found");
+        return new ProductDTO(product);
+    }
 
-            var products = ProductRepository.All
-                .Where(product => product.OwnerId == user.Id)
-                .Select(product => new ProductDTO(product))
-                .ToList();
+    [Authorize]
+    [HttpPost]
+    public ActionResult<ProductDTO> CreateProduct(CreateProductDTO data)
+    {
+        var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
 
-            return Ok(products);
-        }
+        if (user == null)
+            return NotFound("User not found");
 
-        [Authorize]
-        [HttpGet("{id}")]
-        public ActionResult<ProductDTO> GetProductById(string id)
-        {
-            var product = ProductRepository.All
-                .Where(product => product.OwnerId == User.FindFirstValue(ClaimTypes.Sid))
-                .Where(product => product.Id == id)
-                .SingleOrDefault();
+        var product = new Product(user.Id, data.Name, data.Description,
+            data.ImageUrl, data.Price, data.Quantity);
 
-            if (product == null)
-                return NotFound("Product not found");
+        InventoryService.AddProduct(product);
+        return new ProductDTO(product);
+    }
 
-            return new ProductDTO(product);
-        }
+    [Authorize]
+    [HttpPatch("{id}")]
+    public ActionResult<ProductDTO> PatchProduct(string id, PatchProductDTO data)
+    {
+        var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
 
-        [Authorize]
-        [HttpPost]
-        public ActionResult<ProductDTO> CreateProduct(CreateProductDTO data)
-        {
-            var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
+        if (user == null)
+            return NotFound("User not found");
 
-            if (user == null)
-                return NotFound("User not found");
+        var product = ProductRepository.GetById(id);
 
-            var product = new Product(user.Id, data.Name, data.Description,
-                data.ImageUrl, data.Price, data.Quantity);
+        product.Name = data.Name;
+        product.ImageUrl = data.ImageUrl;
+        product.Price = data.Price;
+        product.Description = data.Description;
 
-            InventoryService.AddProduct(product);
-            return new ProductDTO(product);
-        }
+        ProductRepository.Update(product);
 
-        [Authorize]
-        [HttpPatch("{id}")]
-        public ActionResult<ProductDTO> PatchProduct(string id, PatchProductDTO data)
-        {
-            var user = UserRepository.GetById(User.FindFirstValue(ClaimTypes.Sid));
-
-            if (user == null)
-                return NotFound("User not found");
-
-            var product = ProductRepository.GetById(id);
-
-            product.Name = data.Name;
-            product.ImageUrl = data.ImageUrl;
-            product.Price = data.Price;
-            product.Description = data.Description;
-
-            ProductRepository.Update(product);
-
-            return new ProductDTO(product);
-        }
+        return new ProductDTO(product);
     }
 }

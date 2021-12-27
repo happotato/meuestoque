@@ -13,98 +13,97 @@ using Microsoft.AspNetCore.Authorization;
 using MeuEstoque.Domain.AggregatesModel.UserAggregate;
 using MeuEstoque.Web.DTO;
 
-namespace MeuEstoque.Web.Controllers
+namespace MeuEstoque.Web.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class UserController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UserController : ControllerBase
+    private IUserRepository UserRepository { get; }
+
+    private IUserStore<User> UserStore { get; }
+
+    private ILogger Logger { get; }
+
+    public UserController(ILogger<UserController> logger, IUserRepository repository, IUserStore<User> userStore)
     {
-        private IUserRepository UserRepository { get; }
+        UserRepository = repository;
+        UserStore = userStore;
+        Logger = logger;
+    }
 
-        private IUserStore<User> UserStore { get; }
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult<UserDTO>> GetCurrentUser()
+    {
+        var user = await UserStore.FindByIdAsync(User.FindFirstValue(ClaimTypes.Sid), CancellationToken.None);
 
-        private ILogger Logger { get; }
+        if (user == null)
+            return NotFound();
 
-        public UserController(ILogger<UserController> logger, IUserRepository repository, IUserStore<User> userStore)
+        return new UserDTO(user);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("create")]
+    public async Task<ActionResult<UserDTO>> CreateUser(CreateUserDTO data)
+    {
+        var user = new User(data.Name, data.Username, data.Email, data.Password);
+
+        var duplicated = UserRepository.All
+            .Where(user => user.Email == data.Email || user.Username == data.Username)
+            .Count();
+
+        if (duplicated > 0)
         {
-            UserRepository = repository;
-            UserStore = userStore;
-            Logger = logger;
+            return UnprocessableEntity("Username or Email already in use");
         }
 
-        [Authorize]
-        [HttpGet]
-        public async Task<ActionResult<UserDTO>> GetCurrentUser()
+        await UserStore.CreateAsync(user, CancellationToken.None);
+
+        return await Login(new UserLoginDTO
         {
-            var user = await UserStore.FindByIdAsync(User.FindFirstValue(ClaimTypes.Sid), CancellationToken.None);
+            Email = user.Email,
+            Password = user.Password,
+        });
+    }
 
-            if (user == null)
-                return NotFound();
+    [AllowAnonymous]
+    [HttpPost("login")]
+    public async Task<ActionResult<UserDTO>> Login(UserLoginDTO data)
+    {
+        var user = UserRepository.All
+            .Where(user => user.Email == data.Email && user.Password == data.Password)
+            .SingleOrDefault();
 
-            return new UserDTO(user);
+        if (user == null)
+        {
+            return Unauthorized();
         }
 
-        [AllowAnonymous]
-        [HttpPost("create")]
-        public async Task<ActionResult<UserDTO>> CreateUser(CreateUserDTO data)
+        var claims = new List<Claim>
         {
-            var user = new User(data.Name, data.Username, data.Email, data.Password);
+            new Claim(ClaimTypes.Sid, user.Id),
+        };
 
-            var duplicated = UserRepository.All
-                .Where(user => user.Email == data.Email || user.Username == data.Username)
-                .Count();
-
-            if (duplicated > 0)
-            {
-                return UnprocessableEntity("Username or Email already in use");
-            }
-
-            await UserStore.CreateAsync(user, CancellationToken.None);
-
-            return await Login(new UserLoginDTO
-            {
-                Email = user.Email,
-                Password = user.Password,
-            });
-        }
-
-        [AllowAnonymous]
-        [HttpPost("login")]
-        public async Task<ActionResult<UserDTO>> Login(UserLoginDTO data)
+        var scheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        var claimsIdentity = new ClaimsIdentity(claims, scheme);
+        var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+        var properties = new AuthenticationProperties
         {
-            var user = UserRepository.All
-                .Where(user => user.Email == data.Email && user.Password == data.Password)
-                .SingleOrDefault();
+            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60),
+        };
 
-            if (user == null)
-            {
-                return Unauthorized();
-            }
+        await HttpContext.SignInAsync(scheme, claimsPrincipal, properties);
 
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, user.Id),
-            };
+        return new UserDTO(user);
+    }
 
-            var scheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            var claimsIdentity = new ClaimsIdentity(claims, scheme);
-            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-            var properties = new AuthenticationProperties
-            {
-                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60),
-            };
-
-            await HttpContext.SignInAsync(scheme, claimsPrincipal, properties);
-
-            return new UserDTO(user);
-        }
-
-        [Authorize]
-        [HttpPost("logout")]
-        public async Task<ActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync();
-            return Ok();
-        }
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<ActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync();
+        return Ok();
     }
 }

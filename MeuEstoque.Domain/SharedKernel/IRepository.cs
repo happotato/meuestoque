@@ -1,18 +1,16 @@
 using System.Linq;
 
-namespace MeuEstoque.Domain.SharedKernel
+namespace MeuEstoque.Domain.SharedKernel;
+
+public interface IRepository<T> where T : Entity, IAggregateRoot
 {
-    // Use AddScoped
-    public interface IRepository<T> where T : Entity, IAggregateRoot
-    {
-        IQueryable<T> All { get; }
+    IQueryable<T> All { get; }
 
-        T GetById(string id);
+    T GetById(string id);
 
-        T Add(T obj);
+    T Add(T obj);
 
-        T Update(T obj);
+    T Update(T obj);
 
-        void Remove(T obj);
-    }
+    void Remove(T obj);
 }

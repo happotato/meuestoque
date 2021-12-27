@@ -1,9 +1,8 @@
 using MeuEstoque.Domain.SharedKernel;
 
-namespace MeuEstoque.Domain.AggregatesModel.ProductAggregate
+namespace MeuEstoque.Domain.AggregatesModel.ProductAggregate;
+
+public interface IProductRepository : IRepository<Product>
 {
-    public interface IProductRepository : IRepository<Product>
-    {
-        
-    }
+    
 }

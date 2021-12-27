@@ -1,9 +1,8 @@
-namespace MeuEstoque.Infrastructure.Cryptography
-{
-    public interface IEncypter
-    {
-        string Encrypt(string text);
+namespace MeuEstoque.Infrastructure.Cryptography;
 
-        string Decrypt(string text);
-    }
+public interface IEncypter
+{
+    string Encrypt(string text);
+
+    string Decrypt(string text);
 }

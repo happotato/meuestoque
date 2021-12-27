@@ -1,12 +1,11 @@
 using MeuEstoque.Domain.AggregatesModel.OrderAggregate;
 using MeuEstoque.Domain.AggregatesModel.ProductAggregate;
 
-namespace MeuEstoque.Domain.Services
-{
-    public interface IInventoryService
-    {
-        void AddProduct(Product product);
+namespace MeuEstoque.Domain.Services;
 
-        void AddOrder(Order order);
-    }
+public interface IInventoryService
+{
+    void AddProduct(Product product);
+
+    void AddOrder(Order order);
 }
